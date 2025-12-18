@@ -28,7 +28,7 @@ def calculate_speedup(results):
     if not results:
         return speedups
     
-    # Get process counts
+    # Handle both string and integer keys
     processes = []
     for k in results.keys():
         try:
@@ -44,6 +44,8 @@ def calculate_speedup(results):
         baseline_key = 1
     elif '1' in results:
         baseline_key = '1'
+    elif 1 in results: 
+        baseline_key = 1
     
     if baseline_key is None:
         return speedups
@@ -51,12 +53,19 @@ def calculate_speedup(results):
     baseline_time = results[baseline_key]['total_time']
     
     for p in processes:
-        key = str(p)
-        if key in results:
-            if p == 1:
-                speedups[p] = 1.0
-            else:
-                speedups[p] = baseline_time / results[key]['total_time']
+        key_to_use = None
+        if p in results:
+            key_to_use = p
+        elif str(p) in results:
+            key_to_use = str(p)
+        
+        if key_to_use is None:
+            continue
+            
+        if p == 1 or p == '1':
+            speedups[p] = 1.0
+        else:
+            speedups[p] = baseline_time / results[key_to_use]['total_time']
     
     return speedups
 
@@ -83,15 +92,17 @@ def plot_comparison(mp_results, futures_results, results_dir="results"):
     mp_speedups = calculate_speedup(mp_results)
     futures_speedups = calculate_speedup(futures_results)
     
+    if not mp_speedups and not futures_speedups:
+        print("No valid data to calculate speedups.")
+        return
+    
     mp_efficiencies = calculate_efficiency(mp_speedups)
     futures_efficiencies = calculate_efficiency(futures_speedups)
     
     # Get process counts
     all_processes = set()
-    if mp_speedups:
-        all_processes.update(mp_speedups.keys())
-    if futures_speedups:
-        all_processes.update(futures_speedups.keys())
+    for d in [mp_speedups, futures_speedups]:
+        all_processes.update(d.keys())
     
     if not all_processes:
         print("No process data available for plotting.")
@@ -105,12 +116,21 @@ def plot_comparison(mp_results, futures_results, results_dir="results"):
     mp_eff_vals, futures_eff_vals = [], []
     
     for p in processes:
-        key = str(p)
-        mp_time = mp_results.get(key, {}).get('total_time', 0)
-        futures_time = futures_results.get(key, {}).get('total_time', 0)
+        mp_time = None
+        futures_time = None
         
-        mp_times.append(mp_time)
-        futures_times.append(futures_time)
+        if p in mp_results:
+            mp_time = mp_results[p]['total_time']
+        elif str(p) in mp_results:
+            mp_time = mp_results[str(p)]['total_time']
+        
+        if p in futures_results:
+            futures_time = futures_results[p]['total_time']
+        elif str(p) in futures_results:
+            futures_time = futures_results[str(p)]['total_time']
+        
+        mp_times.append(mp_time if mp_time is not None else 0)
+        futures_times.append(futures_time if futures_time is not None else 0)
         mp_speedup_vals.append(mp_speedups.get(p, 0))
         futures_speedup_vals.append(futures_speedups.get(p, 0))
         mp_eff_vals.append(mp_efficiencies.get(p, 0))
@@ -178,12 +198,12 @@ def plot_comparison(mp_results, futures_results, results_dir="results"):
         for i, p in enumerate(processes):
             row = [
                 str(p),
-                f"{mp_times[i]:.2f}",
-                f"{futures_times[i]:.2f}",
-                f"{mp_speedup_vals[i]:.2f}",
-                f"{futures_speedup_vals[i]:.2f}",
-                f"{mp_eff_vals[i]:.2f}",
-                f"{futures_eff_vals[i]:.2f}"
+                f"{mp_times[i]:.2f}" if mp_times[i] > 0 else "N/A",
+                f"{futures_times[i]:.2f}" if futures_times[i] > 0 else "N/A",
+                f"{mp_speedup_vals[i]:.2f}" if mp_speedup_vals[i] > 0 else "N/A",
+                f"{futures_speedup_vals[i]:.2f}" if futures_speedup_vals[i] > 0 else "N/A",
+                f"{mp_eff_vals[i]:.2f}" if mp_eff_vals[i] > 0 else "N/A",
+                f"{futures_eff_vals[i]:.2f}" if futures_eff_vals[i] > 0 else "N/A"
             ]
             table_data.append(row)
         
@@ -213,7 +233,6 @@ def plot_comparison(mp_results, futures_results, results_dir="results"):
     perf_dir = os.path.join(results_dir, "performance_data")
     os.makedirs(perf_dir, exist_ok=True)
     
-    import json
     with open(os.path.join(perf_dir, 'multiprocessing_results.json'), 'w') as f:
         json.dump(mp_results, f, indent=2)
     with open(os.path.join(perf_dir, 'futures_results.json'), 'w') as f:

@@ -2,7 +2,7 @@ import os
 import time
 import glob
 from multiprocessing import Pool, cpu_count
-from src.image_filters import ImageProcessor
+from image_filters import ImageProcessor
 from pathlib import Path
 
 def process_single_image(args):

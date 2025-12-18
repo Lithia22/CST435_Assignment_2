@@ -54,9 +54,9 @@ def run_all():
     
     # Import modules
     sys.path.append('src')
-    from src.multiprocessing_impl import run_multiprocessing_experiment
-    from src.concurrent_futures_impl import run_futures_experiment
-    from src.performance_analysis import plot_comparison
+    from multiprocessing_impl import run_multiprocessing_experiment
+    from concurrent_futures_impl import run_futures_experiment
+    from performance_analysis import plot_comparison
     
     # Run parallel implementations
     mp_results = run_multiprocessing_experiment("food101_subset", results_dir)
