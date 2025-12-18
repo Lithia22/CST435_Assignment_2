@@ -59,8 +59,8 @@ def run_all():
     from performance_analysis import plot_comparison
     
     # Run parallel implementations
-    mp_results = run_multiprocessing_experiment("food101_subset", results_dir)
-    futures_results = run_futures_experiment("food101_subset", results_dir)
+    mp_results = run_multiprocessing_experiment("food101_subset", [1, 2, 4, 8], results_dir)
+    futures_results = run_futures_experiment("food101_subset", [1, 2, 4, 8], results_dir)
     
     # Generate performance analysis
     plot_comparison(mp_results, futures_results, results_dir)
