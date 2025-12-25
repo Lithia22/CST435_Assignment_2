@@ -10,7 +10,7 @@ A system that applies 5 image filters to Food-101 photos using two parallel prog
 ### 1. Create VM Instance
 
 - **Machine Type**: e2-standard-4 (4 vCPU, 16GB RAM)
-- **Boot Disk**: 30GB, Ubuntu 22.04 LTS
+- **Boot Disk**: 30GB, Ubuntu 22.04 LTS **x86/64**
 - **Firewall**: Allow HTTP/HTTPS traffic
 
 ### 2. Setup Commands (GCP SSH)
@@ -45,7 +45,7 @@ results/
 ### Download Individual Files:
 
 1. Select **"Download file"** in SSH
-2. Enter path:
+2. Enter path **(replace `username` with your actual username)**:
    - `/home/username/CST435_Assignment_2/results/performance_comparison.png`
    - `/home/username/CST435_Assignment_2/results/performance_data/multiprocessing_results.json`
    - `/home/username/CST435_Assignment_2/results/performance_data/futures_results.json`
